@@ -66,9 +66,7 @@ impl Erc20 {
     pub fn allowance(&self, owner: &Address, spender: &Address) -> Balance {
         self.allowances.get_instance(owner).get_or_default(spender)
     }
-}
-
-impl Erc20 {
+    
     pub fn mint(&mut self, address: &Address, amount: &Balance) {
         self.balances.add(address, *amount);
         self.total_supply.add(*amount);
