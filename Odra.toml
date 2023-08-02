@@ -1,0 +1,3 @@
+[[contracts]]
+name = "flipper"
+fqn = "odra_amm::Flipper"
