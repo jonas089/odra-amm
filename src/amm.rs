@@ -18,6 +18,15 @@ impl AmmContract {
         self.token0_address.set(token0_address);
         self.token1_address.set(token1_address);
     }
+    pub fn add_liquidity(&mut self, amount0: U256, amount1: U256){
+
+    }
+    pub fn remove_liquidity(&mut self, shares: U256){
+
+    }
+    pub fn swap(&mut self, amount: U256, from_token_address: Address){
+        
+    }
 }
 
 #[cfg(test)]
@@ -36,7 +45,11 @@ mod tests {
     }
     #[test]
     fn add_Liquidity() {
-        
+        let user: Address = odra::test_env::get_account(1);
+        let lq_token_address: Address = Erc20Deployer::init("TOKEN".to_string(), "TKN".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let token0_address: Address = Erc20Deployer::init("TOKEN0".to_string(), "TKN0".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let token1_address: Address = Erc20Deployer::init("TOKEN1".to_string(), "TKN1".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+
     }
     #[test]
     fn remove_Liquidity(){
