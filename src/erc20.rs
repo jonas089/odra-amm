@@ -1,6 +1,7 @@
 use odra::{Variable, Mapping, contract_env, execution_error, Event};
 use odra::types::{Balance, Address, U256};
 use odra::types::event::OdraEvent;
+
 #[odra::module(events = [Transfer, Approval])]
 pub struct Erc20 {
     decimals: Variable<u8>,
