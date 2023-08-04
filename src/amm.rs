@@ -118,7 +118,7 @@ impl AmmContract {
 mod tests {
     use odra::types::{Address, U256, Balance};
     use crate::erc20::{Erc20, Erc20Ref, Erc20Deployer};
-    use super::{AmmContractDeployer};
+    use super::{AmmContractDeployer, AmmContractRef};
     #[test]
     fn test_erc20(){
         let user: Address = odra::test_env::get_account(1);
@@ -135,7 +135,13 @@ mod tests {
         let token0_address: Address = Erc20Deployer::init("TOKEN0".to_string(), "TKN0".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
         let token1_address: Address = Erc20Deployer::init("TOKEN1".to_string(), "TKN1".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
         let amm_contract: Address = AmmContractDeployer::init(lq_token_address, token0_address, token1_address).address().to_owned();
-        
+        // fund user with token0 and token1
+        Erc20Ref::at(&token0_address).mint(&user, &U256::from(1000u128));
+        Erc20Ref::at(&token1_address).mint(&user, &U256::from(1000u128));
+        change_caller(user);
+        Erc20Ref::at(&token0_address).approve(&amm_contract, &U256::from(1000u128));
+        Erc20Ref::at(&token1_address).approve(&amm_contract, &U256::from(1000u128));
+        AmmContractRef::at(&amm_contract).add_liquidity(U256::from(1000u128), U256::from(1000u128));
     }
     #[test]
     fn remove_Liquidity(){
