@@ -161,6 +161,39 @@ mod tests {
     }
     #[test]
     fn remove_Liquidity(){
+        let user: Address = odra::test_env::get_account(1);
+        let lq_token_address: Address = Erc20Deployer::init("TOKEN".to_string(), "TKN".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let token0_address: Address = Erc20Deployer::init("TOKEN0".to_string(), "TKN0".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let token1_address: Address = Erc20Deployer::init("TOKEN1".to_string(), "TKN1".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let amm_contract: Address = AmmContractDeployer::init(lq_token_address, token0_address, token1_address).address().to_owned();
+        { /* ADD LIQUIDITY */
+            // fund user with token0 and token1
+            Erc20Ref::at(&token0_address).mint(&user, &U256::from(1000u128));
+            Erc20Ref::at(&token1_address).mint(&user, &U256::from(1000u128));
+            change_caller(user);
+            // approve contract as spender
+            Erc20Ref::at(&token0_address).approve(&amm_contract, &U256::from(1000u128));
+            Erc20Ref::at(&token1_address).approve(&amm_contract, &U256::from(1000u128));
+            // add liquidity
+            AmmContractRef::at(&amm_contract).add_liquidity(U256::from(1000u128), U256::from(1000u128));
+            // verify reserve balance
+            let reserve0: U256 = AmmContractRef::at(&amm_contract).reserve0();
+            let reserve1: U256 = AmmContractRef::at(&amm_contract).reserve1();
+    
+            assert_eq!(reserve0, reserve1);
+            assert_eq!(reserve0, U256::from(1000u128));
+        };
+        // get shares
+        let shares: U256 = Erc20Ref::at(&lq_token_address).balance_of(&user);
+        assert_eq!(shares, U256::from(1000));
+        // remove liquidity
+        change_caller(user);
+        AmmContractRef::at(&amm_contract).remove_liquidity(shares);
+        // check redeemed balance
+        let user_balance0: U256 = Erc20Ref::at(&token0_address).balance_of(&user);
+        let user_balance1: U256 = Erc20Ref::at(&token1_address).balance_of(&user);
+        assert_eq!(user_balance0, U256::from(1000));
+        assert_eq!(user_balance1, U256::from(1000));
 
     }
     #[test]
