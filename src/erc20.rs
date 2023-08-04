@@ -68,6 +68,9 @@ impl Erc20 {
     }
     
     pub fn mint(&mut self, address: &Address, amount: &Balance) {
+        /*
+            assert caller
+        */
         self.balances.add(address, *amount);
         self.total_supply.add(*amount);
         Transfer {
@@ -78,6 +81,12 @@ impl Erc20 {
         .emit();
     }
     pub fn burn(&mut self, owner: &Address, amount: &Balance){
+        /*
+            assert caller
+        */
+        if self.balance_of(owner) < *amount{
+            contract_env::revert(Error::InsufficientBalance);
+        }
         self.balances.subtract(owner, *amount);
         self.total_supply.subtract(*amount);
         // could emit event
