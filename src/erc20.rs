@@ -1,5 +1,5 @@
 use odra::{Variable, Mapping, contract_env, execution_error, Event};
-use odra::types::{Balance, Address, U256};
+use odra::types::{Balance, Address, U256, address};
 use odra::types::event::OdraEvent;
 
 #[odra::module(events = [Transfer, Approval])]
@@ -76,6 +76,11 @@ impl Erc20 {
             amount: *amount
         }
         .emit();
+    }
+    pub fn burn(&mut self, owner: &Address, amount: &Balance){
+        self.balances.subtract(owner, *amount);
+        self.total_supply.subtract(*amount);
+        // could emit event
     }
     fn raw_transfer(&mut self, owner: &Address, recipient: &Address, amount: &Balance) {
         let owner_balance = self.balances.get_or_default(&owner);

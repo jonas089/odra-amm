@@ -30,13 +30,15 @@ impl AmmContract {
     }
     pub fn add_liquidity(&mut self, amount0: U256, amount1: U256){
         let caller: Address = contract_env::caller();
-        // send token0 from caller to contract (must be approved first)
+        // transfer approved tokens from caller to contract
         Erc20Ref::at(&self.token0_address.get().unwrap()).transfer_from(&caller, &contract_env::self_address(), &amount0);
-        // send token1 from caller to contract (must be approved first)
         Erc20Ref::at(&self.token1_address.get().unwrap()).transfer_from(&caller, &contract_env::self_address(), &amount1);
+        
+        // get reserves and total supply of LQ token
+        let reserve0: &U256 = &self.reserve0.get().unwrap();
+        let reserve1: &U256 = &self.reserve1.get().unwrap();
+        let totalSupply: U256 = Erc20Ref::at(&self.lq_token_address.get().unwrap()).total_supply();
         // verify contribution
-        let reserve0 = &self.reserve0.get().unwrap();
-        let reserve1 = &self.reserve1.get().unwrap();
         if reserve0 > &U256::zero() || reserve1 > &U256::zero(){
             if (reserve0 * amount1) != (reserve1 * amount0){
                 odra::contract_env::revert(Error::InvalidContribution)
@@ -44,7 +46,6 @@ impl AmmContract {
         }
 
         // calculate the amount of shares to be minted
-        let totalSupply: U256 = Erc20Ref::at(&self.lq_token_address.get().unwrap()).total_supply();
         let mut shares: U256 = U256::zero();
         if totalSupply == U256::zero(){
             shares = _sqrt(amount0 * amount1);
@@ -65,10 +66,51 @@ impl AmmContract {
 
     pub fn remove_liquidity(&mut self, shares: U256){
         let caller: Address = contract_env::caller();
+        // get balances and total supply of LQ token
+        let balance0: U256 = Erc20Ref::at(&self.token0_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let balance1: U256 = Erc20Ref::at(&self.token1_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let totalSupply: U256 = Erc20Ref::at(&self.lq_token_address.get().unwrap()).total_supply();
+        // calculate output amounts
+        let amount0: U256 = shares * balance0 / totalSupply;
+        let amount1: U256 = shares * balance1 / totalSupply;
+        // transfer output amounts and burn LQ token
+        Erc20Ref::at(&self.lq_token_address.get().unwrap()).burn(&caller, &shares);
+        Erc20Ref::at(&self.token0_address.get().unwrap()).transfer(&caller, &amount0);
+        Erc20Ref::at(&self.token1_address.get().unwrap()).transfer(&caller, &amount1);
+        // update reserve => move this to an internal function
+        let contract_balance_0: U256 = Erc20Ref::at(&self.token0_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let contract_balance_1: U256 =Erc20Ref::at(&self.token1_address.get().unwrap()).balance_of(&contract_env::self_address());
+        self.reserve0.set(contract_balance_0);
+        self.reserve1.set(contract_balance_1);
     }
     
     pub fn swap(&mut self, amount: U256, from_token_address: Address){
         let caller: Address = contract_env::caller();
+        let balance0: U256 = Erc20Ref::at(&self.token0_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let balance1: U256 = Erc20Ref::at(&self.token1_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let token0_address: &Address = &self.token0_address.get().unwrap();
+        let token1_address: &Address = &self.token1_address.get().unwrap();
+        let mut tokenIn: &Address = token0_address;
+        let mut tokenOut: &Address = token1_address;
+        let mut reserveIn: U256 = balance0;
+        let mut reserveOut: U256 = balance1;
+        if &from_token_address == token1_address{
+            tokenIn = token1_address;
+            tokenOut = token0_address;
+            reserveIn = balance1;
+            reserveOut = balance0;
+        }
+        // transfer tokens to contract
+        Erc20Ref::at(tokenIn).transfer(&contract_env::caller(), &amount);
+        // calculate output amount with 0.3% fee
+        let amountInWithFee: U256 = (amount * 997) / 1000;
+        let amountOut: U256 = (reserveOut * amountInWithFee) / (reserveIn + amountInWithFee);
+        Erc20Ref::at(tokenOut).transfer(&caller, &amountOut);
+        // update reserve => move this to an internal function
+        let contract_balance_0: U256 = Erc20Ref::at(&self.token0_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let contract_balance_1: U256 =Erc20Ref::at(&self.token1_address.get().unwrap()).balance_of(&contract_env::self_address());
+        self.reserve0.set(contract_balance_0);
+        self.reserve1.set(contract_balance_1);
     }
 }
 
@@ -92,7 +134,8 @@ mod tests {
         let lq_token_address: Address = Erc20Deployer::init("TOKEN".to_string(), "TKN".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
         let token0_address: Address = Erc20Deployer::init("TOKEN0".to_string(), "TKN0".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
         let token1_address: Address = Erc20Deployer::init("TOKEN1".to_string(), "TKN1".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
-
+        let amm_contract: Address = AmmContractDeployer::init(lq_token_address, token0_address, token1_address).address().to_owned();
+        
     }
     #[test]
     fn remove_Liquidity(){
