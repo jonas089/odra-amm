@@ -112,6 +112,14 @@ impl AmmContract {
         self.reserve0.set(contract_balance_0);
         self.reserve1.set(contract_balance_1);
     }
+
+    pub fn reserve0(&self) -> U256{
+        *&self.reserve0.get().unwrap()
+    }
+
+    pub fn reserve1(&self) -> U256{
+        *&self.reserve1.get().unwrap()
+    }
 }
 
 #[cfg(test)]
@@ -139,9 +147,17 @@ mod tests {
         Erc20Ref::at(&token0_address).mint(&user, &U256::from(1000u128));
         Erc20Ref::at(&token1_address).mint(&user, &U256::from(1000u128));
         change_caller(user);
+        // approve contract as spender
         Erc20Ref::at(&token0_address).approve(&amm_contract, &U256::from(1000u128));
         Erc20Ref::at(&token1_address).approve(&amm_contract, &U256::from(1000u128));
+        // add liquidity
         AmmContractRef::at(&amm_contract).add_liquidity(U256::from(1000u128), U256::from(1000u128));
+        // verify reserve balance
+        let reserve0: U256 = AmmContractRef::at(&amm_contract).reserve0();
+        let reserve1: U256 = AmmContractRef::at(&amm_contract).reserve1();
+
+        assert_eq!(reserve0, reserve1);
+        assert_eq!(reserve0, U256::from(1000u128));
     }
     #[test]
     fn remove_Liquidity(){
