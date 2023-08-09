@@ -108,7 +108,7 @@ impl AmmContract {
         Erc20Ref::at(tokenOut).transfer(&caller, &amountOut);
         // update reserve => move this to an internal function
         let contract_balance_0: U256 = Erc20Ref::at(&self.token0_address.get().unwrap()).balance_of(&contract_env::self_address());
-        let contract_balance_1: U256 =Erc20Ref::at(&self.token1_address.get().unwrap()).balance_of(&contract_env::self_address());
+        let contract_balance_1: U256 = Erc20Ref::at(&self.token1_address.get().unwrap()).balance_of(&contract_env::self_address());
         self.reserve0.set(contract_balance_0);
         self.reserve1.set(contract_balance_1);
     }
@@ -198,6 +198,39 @@ mod tests {
     }
     #[test]
     fn swap(){
+        let user: Address = odra::test_env::get_account(1);
+        let lq_token_address: Address = Erc20Deployer::init("TOKEN".to_string(), "TKN".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let token0_address: Address = Erc20Deployer::init("TOKEN0".to_string(), "TKN0".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let token1_address: Address = Erc20Deployer::init("TOKEN1".to_string(), "TKN1".to_string(), 18u8, &U256::from(0u128)).address().to_owned();
+        let amm_contract: Address = AmmContractDeployer::init(lq_token_address, token0_address, token1_address).address().to_owned();
+        { /* ADD LIQUIDITY */
+            // fund user with token0 and token1
+            Erc20Ref::at(&token0_address).mint(&user, &U256::from(5000u128));
+            Erc20Ref::at(&token1_address).mint(&user, &U256::from(5000u128));
+            change_caller(user);
+            // approve contract as spender
+            Erc20Ref::at(&token0_address).approve(&amm_contract, &U256::from(5000u128));
+            Erc20Ref::at(&token1_address).approve(&amm_contract, &U256::from(5000u128));
+            // add liquidity
+            AmmContractRef::at(&amm_contract).add_liquidity(U256::from(5000u128), U256::from(5000u128));
+            // verify reserve balance
+            let reserve0: U256 = AmmContractRef::at(&amm_contract).reserve0();
+            let reserve1: U256 = AmmContractRef::at(&amm_contract).reserve1();
+    
+            assert_eq!(reserve0, reserve1);
+            assert_eq!(reserve0, U256::from(5000u128));
+            assert_eq!(U256::from(0u128), Erc20Ref::at(&token0_address).balance_of(&user));
+            assert_eq!(U256::from(0u128), Erc20Ref::at(&token1_address).balance_of(&user));
+        };
+        // perform a swap
+        Erc20Ref::at(&token0_address).mint(&user, &U256::from(1000u128));
+        // approve the contract to spend user's token0
+        change_caller(user);
+        Erc20Ref::at(&token0_address).approve(&amm_contract, &U256::from(1000u128));
+        // swap token0 for token1
+        AmmContractRef::at(&amm_contract).swap(U256::from(1000u128), token0_address);
+        // check balances
+        assert_eq!(U256::from(831u128), Erc20Ref::at(&token1_address).balance_of(&user));
 
     }
     fn change_caller(caller: Address){
