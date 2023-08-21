@@ -1,0 +1,78 @@
+{
+  "name": "AmmContract",
+  "entrypoints": [
+    {
+      "name": "init",
+      "is_mutable": true,
+      "args": [
+        {
+          "name": "lq_token_address",
+          "ty": "Key"
+        },
+        {
+          "name": "token0_address",
+          "ty": "Key"
+        },
+        {
+          "name": "token1_address",
+          "ty": "Key"
+        }
+      ],
+      "return_ty": "Unit"
+    },
+    {
+      "name": "add_liquidity",
+      "is_mutable": true,
+      "args": [
+        {
+          "name": "amount0",
+          "ty": "U512"
+        },
+        {
+          "name": "amount1",
+          "ty": "U512"
+        }
+      ],
+      "return_ty": "Unit"
+    },
+    {
+      "name": "remove_liquidity",
+      "is_mutable": true,
+      "args": [
+        {
+          "name": "shares",
+          "ty": "U512"
+        }
+      ],
+      "return_ty": "Unit"
+    },
+    {
+      "name": "swap",
+      "is_mutable": true,
+      "args": [
+        {
+          "name": "amount",
+          "ty": "U512"
+        },
+        {
+          "name": "from_token_address",
+          "ty": "Key"
+        }
+      ],
+      "return_ty": "Unit"
+    },
+    {
+      "name": "reserve0",
+      "is_mutable": false,
+      "args": [],
+      "return_ty": "U512"
+    },
+    {
+      "name": "reserve1",
+      "is_mutable": false,
+      "args": [],
+      "return_ty": "U512"
+    }
+  ],
+  "events": []
+}

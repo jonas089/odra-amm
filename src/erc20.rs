@@ -1,5 +1,5 @@
 use odra::{Variable, Mapping, contract_env, execution_error, Event};
-use odra::types::{Balance, Address, U256, address};
+use odra::types::{Balance, Address, address};
 use odra::types::event::OdraEvent;
 
 #[odra::module(events = [Transfer, Approval])]
@@ -128,7 +128,7 @@ impl Erc20 {
 pub struct Approval {
     pub owner: Address,
     pub spender: Address,
-    pub value: U256
+    pub value: Balance
 }
 
 execution_error! {
@@ -148,7 +148,7 @@ pub struct Transfer {
 #[cfg(test)]
 pub mod tests {
     use super::{Approval, Erc20Deployer, Erc20Ref, Error, Transfer};
-    use odra::{assert_events, test_env, types::U256};
+    use odra::{assert_events, test_env, types::Balance};
 
     pub const NAME: &str = "CasperCoin";
     pub const SYMBOL: &str = "CSPR";
@@ -160,7 +160,7 @@ pub mod tests {
             String::from(NAME),
             String::from(SYMBOL),
             DECIMALS,
-            &U256::from(INITIAL_SUPPLY)
+            &Balance::from(INITIAL_SUPPLY)
         )
     }
 
@@ -186,13 +186,13 @@ pub mod tests {
     fn transfer_works() {
         let mut erc20 = setup();
         let (sender, recipient) = (test_env::get_account(0), test_env::get_account(1));
-        let amount = U256::from(1000u128);
+        let amount = Balance::from(1000u128);
 
         erc20.transfer(&recipient, &amount);
 
         assert_eq!(
             erc20.balance_of(&sender),
-            U256::from(INITIAL_SUPPLY) - amount
+            Balance::from(INITIAL_SUPPLY) - amount
         );
         assert_eq!(erc20.balance_of(&recipient), amount);
         assert_events!(
@@ -209,7 +209,7 @@ pub mod tests {
     fn transfer_error() {
         let mut erc20 = setup();
         let recipient = test_env::get_account(1);
-        let amount = U256::from(INITIAL_SUPPLY) + U256::from(1);
+        let amount = Balance::from(INITIAL_SUPPLY) + Balance::from(1);
 
         test_env::assert_exception(Error::InsufficientBalance, || {
             erc20.transfer(&recipient, &amount)
@@ -248,7 +248,7 @@ pub mod tests {
         // Tokens are transferred and allowance decremented.
         assert_eq!(
             erc20.balance_of(&owner),
-            U256::from(INITIAL_SUPPLY) - transfer_amount
+            Balance::from(INITIAL_SUPPLY) - transfer_amount
         );
         assert_eq!(erc20.balance_of(&recipient), transfer_amount);
         assert_events!(

@@ -1,3 +1,3 @@
 [[contracts]]
-name = "flipper"
-fqn = "odra_amm::Flipper"
+name = "odraAMM"
+fqn = "odra_amm::amm::AmmContract"
