@@ -26,11 +26,11 @@
       "args": [
         {
           "name": "amount0",
-          "ty": "U512"
+          "ty": "U256"
         },
         {
           "name": "amount1",
-          "ty": "U512"
+          "ty": "U256"
         }
       ],
       "return_ty": "Unit"
@@ -41,7 +41,7 @@
       "args": [
         {
           "name": "shares",
-          "ty": "U512"
+          "ty": "U256"
         }
       ],
       "return_ty": "Unit"
@@ -52,7 +52,7 @@
       "args": [
         {
           "name": "amount",
-          "ty": "U512"
+          "ty": "U256"
         },
         {
           "name": "from_token_address",
@@ -65,13 +65,13 @@
       "name": "reserve0",
       "is_mutable": false,
       "args": [],
-      "return_ty": "U512"
+      "return_ty": "U256"
     },
     {
       "name": "reserve1",
       "is_mutable": false,
       "args": [],
-      "return_ty": "U512"
+      "return_ty": "U256"
     }
   ],
   "events": []

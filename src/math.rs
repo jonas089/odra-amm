@@ -1,19 +1,19 @@
-use odra::types::{Balance};
+use odra::types::U256;
 
-pub fn _sqrt(y: Balance) -> Balance {
-    if y == Balance::from(0) {
-        return Balance::from(0);
+pub fn _sqrt(y: U256) -> U256 {
+    if y == U256::from(0) {
+        return U256::from(0);
     }
-    let mut z: Balance = y / Balance::from(2) + Balance::from(1);
-    let mut x: Balance = y;
+    let mut z: U256 = y / U256::from(2) + U256::from(1);
+    let mut x: U256 = y;
     while x > z {
         x = z;
-        z = (y / x + x) / Balance::from(2);
+        z = (y / x + x) / U256::from(2);
     }
     return z;
 }
 
-pub fn _min(x: Balance, y: Balance) -> Balance {
+pub fn _min(x: U256, y: U256) -> U256 {
     if x < y {
         return x;
     } else {
