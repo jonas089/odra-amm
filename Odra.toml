@@ -1,3 +1,7 @@
 [[contracts]]
-name = "odraAMM"
+name = "amm_contract"
 fqn = "odra_amm::amm::AmmContract"
+
+[[contracts]]
+name = "erc20"
+fqn = "odra_amm::erc20::Erc20"

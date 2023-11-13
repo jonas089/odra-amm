@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), no_std)]
+
 pub mod amm;
-mod erc20;
+pub mod erc20;
 mod math;
